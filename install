@@ -102,7 +102,7 @@ curl --location --max-time "${TIMEOUT}" "${LINK}" | tar ztvf - || {
     exit 2
 }
 
-cp agent "${BINARY_PATH}/airbox" || exit 2
+mv agent "${BINARY_PATH}/airbox" || exit 2
 chmod 755 "${BINARY_PATH}/airbox" || exit 2
 case "$OS" in
 'linux')
