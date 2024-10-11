@@ -1,3 +1,5 @@
+[![Go Release](https://github.com/airbox-build/agent/actions/workflows/build.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/build.yml)
+
 # AirBox Agent
 
 The AirBox Agent is a lightweight server monitoring tool written in Go. It is designed to collect server metrics such as CPU usage, RAM usage, cache usage, and storage size every minute. These metrics are saved as JSON files in the `/var/log/airbox` directory, with each file named based on the timestamp of collection.
