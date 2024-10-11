@@ -221,7 +221,7 @@ func saveMetricsToFile(metrics Metrics, logPath string) {
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "  ")
+	encoder.SetIndent("", "")
 	if err := encoder.Encode(metrics); err != nil {
 		fmt.Printf("Error writing metrics to file: %v\n", err)
 	}
