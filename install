@@ -84,7 +84,7 @@ aarch64 | arm64)
     ;;
 esac
 
-GH_REPO_BIN="airbox-${VERSION}-${OS}-${OS_type}.tar.gz"
+GH_REPO_BIN="agent-${VERSION}-${OS}-${OS_type}.tar.gz"
 
 #create tmp directory and move to it with macOS compatibility fallback
 TMP_DIR=$(mktemp -d 2>/dev/null || mktemp -d -t 'airbox-install.XXXXXXXXXX')
