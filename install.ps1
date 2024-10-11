@@ -46,7 +46,7 @@ switch ($OS_type) {
     }
 }
 
-$GH_REPO_BIN = "airbox-${VERSION}-windows-${OS_type}.tar.gz"
+$GH_REPO_BIN = "agent${VERSION}-windows-${OS_type}.tar.gz"
 
 # Create tmp directory
 $TMP_DIR = New-TemporaryFile -Directory | Select-Object -ExpandProperty FullName
