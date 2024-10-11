@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -20,6 +21,7 @@ type Metrics struct {
 	Memory    MemoryMetrics  `json:"memory"`
 	Storage   StorageMetrics `json:"storage"`
 	System    SystemMetrics  `json:"system"`
+	Meta      MetaMetrics    `json:"meta"`
 }
 
 type CPUMetrics struct {
@@ -43,22 +45,34 @@ type StorageMetrics struct {
 }
 
 type SystemMetrics struct {
-	Hostname   string `json:"hostname"`
-	OS         string `json:"os"`
-	Platform   string `json:"platform"`
+	Hostname       string `json:"hostname"`
+	OS             string `json:"os"`
+	Platform       string `json:"platform"`
 	PlatformVersion string `json:"platform_version"`
-	KernelVersion string `json:"kernel_version"`
-	Uptime     uint64 `json:"uptime"`
+	KernelVersion  string `json:"kernel_version"`
+	Uptime         uint64 `json:"uptime"`
+}
+
+type MetaMetrics struct {
+	FilePath     string `json:"file_path"`
+	Interval     int    `json:"interval"`
+	FileCreation string `json:"file_creation"`
+	User         string `json:"user"`
 }
 
 func main() {
+	// Define command line flags
+	logPath := flag.String("logpath", "/tmp/airbox", "Directory to store the log files")
+	interval := flag.Int("interval", 60, "Interval to collect metrics in seconds")
+	flag.Parse()
+
 	for {
-		collectAndStoreMetrics()
-		time.Sleep(10 * time.Second)
+		collectAndStoreMetrics(*logPath, *interval)
+		time.Sleep(time.Duration(*interval) * time.Second)
 	}
 }
 
-func collectAndStoreMetrics() {
+func collectAndStoreMetrics(logPath string, interval int) {
 	cpuUsage, err := cpu.Percent(0, false)
 	if err != nil {
 		fmt.Printf("Error getting CPU usage: %v\n", err)
@@ -91,8 +105,9 @@ func collectAndStoreMetrics() {
 		return
 	}
 
+	timestamp := time.Now()
 	metrics := Metrics{
-		Timestamp: time.Now().Format(time.RFC3339),
+		Timestamp: timestamp.Format(time.RFC3339),
 		CPU: CPUMetrics{
 			Usage: cpuUsage,
 			Cores: cpuCores,
@@ -118,20 +133,25 @@ func collectAndStoreMetrics() {
 			KernelVersion:  hostInfo.KernelVersion,
 			Uptime:         hostInfo.Uptime,
 		},
+		Meta: MetaMetrics{
+			FilePath:     filepath.Join(logPath, fmt.Sprintf("airbox-%d.json", timestamp.Unix())),
+			Interval:     interval,
+			FileCreation: timestamp.Format(time.RFC3339),
+			User:         os.Getenv("USER"),
+		},
 	}
 
-	saveMetricsToFile(metrics)
+	saveMetricsToFile(metrics, logPath)
 }
 
-func saveMetricsToFile(metrics Metrics) {
-	dir := "/var/log/airbox"
-	if err := os.MkdirAll(dir, 0755); err != nil {
+func saveMetricsToFile(metrics Metrics, logPath string) {
+	if err := os.MkdirAll(logPath, 0755); err != nil {
 		fmt.Printf("Error creating directory: %v\n", err)
 		return
 	}
 
 	filename := fmt.Sprintf("airbox-%d.json", time.Now().Unix())
-	filePath := filepath.Join(dir, filename)
+	filePath := filepath.Join(logPath, filename)
 
 	file, err := os.Create(filePath)
 	if err != nil {

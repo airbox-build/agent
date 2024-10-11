@@ -2,6 +2,28 @@
 
 GH_REPO="airbox-build/agent"
 TIMEOUT=90
+LOG_PATH="/var/log/airbox"
+INTERVAL=60
+
+# Parse command line arguments
+while [[ "$#" -gt 0 ]]; do
+  case $1 in
+    --logpath)
+      LOG_PATH="$2"
+      shift
+      shift
+      ;;
+    --interval)
+      INTERVAL="$2"
+      shift
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+done
 
 # Determine the operating system
 OS=$(uname -s)
@@ -23,7 +45,7 @@ USERNAME=$USER
 
 set -e
 
-VERSION=$(curl --silent --location --max-time "${TIMEOUT}" "https://api.github.com/repos/${GH_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^\"]+)".*/\1/')
+VERSION=$(curl --silent --location --max-time "${TIMEOUT}" "https://api.github.com/repos/${GH_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 if [ ! "$VERSION" ]; then
     echo -ne "\nThere was an error trying to check what is the latest version of airbox.\nPlease try again later.\n"
     exit 1
@@ -93,8 +115,6 @@ case "$OS" in
 esac
 
 mkdir -p "${BINARY_DIRECTORY}" || exit 2
-wget -O "${BINARY_DIRECTORY}/airbox.yaml" "https://raw.githubusercontent.com/airbox-build/agent/master/airbox-agent.reference.yaml"
-echo "Downloaded airbox.reference.yaml and saved as ${BINARY_DIRECTORY}/airbox.yaml."
 
 rm -rf "${TMP_DIR}"
 echo "Installed successfully to ${BINARY_PATH}/airbox"
@@ -122,14 +142,14 @@ if [[ "$OS" == "darwin" ]]; then
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.nadi.airbox</string>
+    <string>com.airbox</string>
     <key>Description</key>
     <string>AirBox Service</string>
     <key>ProgramArguments</key>
     <array>
         <string>${BINARY_PATH}</string>
-        <string>--config=${BINARY_DIRECTORY}/airbox.yaml</string>
-        <string>--record</string>
+        <string>--logpath=${LOG_PATH}</string>
+        <string>--interval=${INTERVAL}</string>
     </array>
     <key>WorkingDirectory</key>
     <string>${BINARY_DIRECTORY}</string>
@@ -147,11 +167,11 @@ else
 
     sudo tee "${SERVICE_DIRECTORY}" >/dev/null <<EOF
 [Unit]
-Description=Airbox Service
+Description=AirBox Service
 After=network.target
 
 [Service]
-ExecStart=${BINARY_PATH} --config=${BINARY_DIRECTORY}/airbox.yaml --record
+ExecStart=${BINARY_PATH} --logpath=${LOG_PATH} --interval=${INTERVAL}
 WorkingDirectory=${BINARY_DIRECTORY}
 Restart=always
 User=${USERNAME}
@@ -166,4 +186,4 @@ EOF
 
 fi
 
-echo "Airbox service has been installed."
+echo "AirBox service has been installed."
