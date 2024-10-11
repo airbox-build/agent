@@ -41,6 +41,7 @@ else
 fi
 
 mkdir -p "${BINARY_DIRECTORY}" || exit 2
+mkdir -p "${LOG_PATH}" || exit 2
 
 # Get the current logged-in user
 USERNAME=$USER
@@ -97,44 +98,42 @@ echo "Downloading AirBox Agent $VERSION"
 LINK="https://github.com/${GH_REPO}/releases/download/${VERSION}/${GH_REPO_BIN}"
 echo "Downloading $LINK"
 
-curl --location --max-time "${TIMEOUT}" "${LINK}" | tar ztvf - || {
+curl --silent --location --max-time "${TIMEOUT}" "${LINK}" | tar zxf - || {
     echo "Error downloading"
     exit 2
 }
 
-mv agent "${BINARY_PATH}/airbox" || exit 2
-chmod 755 "${BINARY_PATH}/airbox" || exit 2
+mv agent "${BINARY_PATH}/airbox-agent" || exit 2
+chmod 755 "${BINARY_PATH}/airbox-agent" || exit 2
 case "$OS" in
 'linux')
-    chown root:root "${BINARY_PATH}/airbox" || exit 2
+    chown root:root "${BINARY_PATH}/airbox-agent" || exit 2
     ;;
 'freebsd' | 'openbsd' | 'netbsd' | 'darwin')
-    chown root:wheel "${BINARY_PATH}/airbox" || exit 2
+    chown root:wheel "${BINARY_PATH}/airbox-agent" || exit 2
     ;;
 *)
     echo 'OS not supported'
     exit 2
     ;;
 esac
+
+# Check if the airbox-agent exists in the /usr/local/bin directory
+if [ ! -f "${BINARY_PATH}/airbox-agent" ]; then
+    echo "Installation unsuccessful: AirBox Agent is not found in ${BINARY_PATH}"
+    exit 2
+fi
 
 rm -rf "${TMP_DIR}"
-echo "Installed successfully to ${BINARY_PATH}/airbox"
+echo "Installed successfully to ${BINARY_PATH}/airbox-agent"
 
 # Create a Systemd unit file
-SERVICE_DIRECTORY="/etc/systemd/system/airbox.service"
-case "$OS" in
-'darwin')
-    SERVICE_DIRECTORY="/Library/LaunchDaemons/airbox.plist" || exit 2
-    ;;
-*)
-    echo 'OS not supported'
-    exit 2
-    ;;
-esac
+SERVICE_DIRECTORY="/etc/systemd/system/airbox-agent.service"
 
 if [[ "$OS" == "darwin" ]]; then
     # macOS
-    PLIST_PATH="/Library/LaunchDaemons/airbox.plist"
+    PLIST_PATH="/Library/LaunchDaemons/airbox-agent.plist"
+    SERVICE_DIRECTORY="/Library/LaunchDaemons/airbox-agent.plist"
 
     # Create the plist file
     sudo tee "$PLIST_PATH" >/dev/null <<EOF
@@ -143,12 +142,12 @@ if [[ "$OS" == "darwin" ]]; then
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.airbox</string>
+    <string>com.airbox.agent</string>
     <key>Description</key>
-    <string>AirBox Service</string>
+    <string>AirBox Agent Service</string>
     <key>ProgramArguments</key>
     <array>
-        <string>${BINARY_PATH}</string>
+        <string>${BINARY_PATH}/airbox-agent</string>
         <string>--logpath=${LOG_PATH}</string>
         <string>--interval=${INTERVAL}</string>
     </array>
@@ -172,7 +171,7 @@ Description=AirBox Service
 After=network.target
 
 [Service]
-ExecStart=${BINARY_PATH} --logpath=${LOG_PATH} --interval=${INTERVAL}
+ExecStart=${BINARY_PATH}/airbox-agent --logpath=${LOG_PATH} --interval=${INTERVAL}
 WorkingDirectory=${BINARY_DIRECTORY}
 Restart=always
 User=${USERNAME}
