@@ -5,19 +5,50 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/host"
 )
 
 type Metrics struct {
-	Timestamp   string  `json:"timestamp"`
-	CPUUsage    float64 `json:"cpu_usage"`
-	RAMUsage    float64 `json:"ram_usage"`
-	CacheUsage  uint64  `json:"cache_usage"`
-	StorageSize uint64  `json:"storage_size"`
+	Timestamp string        `json:"timestamp"`
+	CPU       CPUMetrics     `json:"cpu"`
+	Memory    MemoryMetrics  `json:"memory"`
+	Storage   StorageMetrics `json:"storage"`
+	System    SystemMetrics  `json:"system"`
+}
+
+type CPUMetrics struct {
+	Usage []float64 `json:"usage"`
+	Cores int       `json:"cores"`
+}
+
+type MemoryMetrics struct {
+	Total       uint64  `json:"total"`
+	Used        uint64  `json:"used"`
+	UsedPercent float64 `json:"used_percent"`
+	SwapTotal   uint64  `json:"swap_total"`
+	SwapUsed    uint64  `json:"swap_used"`
+}
+
+type StorageMetrics struct {
+	Total uint64 `json:"total"`
+	Used  uint64 `json:"used"`
+	Free  uint64 `json:"free"`
+	Cache uint64 `json:"cache"`
+}
+
+type SystemMetrics struct {
+	Hostname   string `json:"hostname"`
+	OS         string `json:"os"`
+	Platform   string `json:"platform"`
+	PlatformVersion string `json:"platform_version"`
+	KernelVersion string `json:"kernel_version"`
+	Uptime     uint64 `json:"uptime"`
 }
 
 func main() {
@@ -34,9 +65,17 @@ func collectAndStoreMetrics() {
 		return
 	}
 
+	cpuCores := runtime.NumCPU()
+
 	memInfo, err := mem.VirtualMemory()
 	if err != nil {
 		fmt.Printf("Error getting memory usage: %v\n", err)
+		return
+	}
+
+	swapInfo, err := mem.SwapMemory()
+	if err != nil {
+		fmt.Printf("Error getting swap memory usage: %v\n", err)
 		return
 	}
 
@@ -46,14 +85,39 @@ func collectAndStoreMetrics() {
 		return
 	}
 
-	storageSize := cacheInfo.Total
+	hostInfo, err := host.Info()
+	if err != nil {
+		fmt.Printf("Error getting host information: %v\n", err)
+		return
+	}
 
 	metrics := Metrics{
-		Timestamp:   time.Now().Format(time.RFC3339),
-		CPUUsage:    cpuUsage[0],
-		RAMUsage:    memInfo.UsedPercent,
-		CacheUsage:  cacheInfo.Used,
-		StorageSize: storageSize,
+		Timestamp: time.Now().Format(time.RFC3339),
+		CPU: CPUMetrics{
+			Usage: cpuUsage,
+			Cores: cpuCores,
+		},
+		Memory: MemoryMetrics{
+			Total:       memInfo.Total,
+			Used:        memInfo.Used,
+			UsedPercent: memInfo.UsedPercent,
+			SwapTotal:   swapInfo.Total,
+			SwapUsed:    swapInfo.Used,
+		},
+		Storage: StorageMetrics{
+			Total: cacheInfo.Total,
+			Used:  cacheInfo.Used,
+			Free:  cacheInfo.Free,
+			Cache: cacheInfo.Used,
+		},
+		System: SystemMetrics{
+			Hostname:       hostInfo.Hostname,
+			OS:             hostInfo.OS,
+			Platform:       hostInfo.Platform,
+			PlatformVersion: hostInfo.PlatformVersion,
+			KernelVersion:  hostInfo.KernelVersion,
+			Uptime:         hostInfo.Uptime,
+		},
 	}
 
 	saveMetricsToFile(metrics)

@@ -55,11 +55,34 @@ The agent runs continuously, collecting and logging metrics every minute. Each l
 
 ```json
 {
-  "timestamp": "2024-10-11T14:30:00Z",
-  "cpu_usage": 12.5,
-  "ram_usage": 68.7,
-  "cache_usage": 524288000,
-  "storage_size": 1000000000000
+  "timestamp": "2024-10-11T09:53:07+08:00",
+  "cpu": {
+    "usage": [
+      22.10517039079614
+    ],
+    "cores": 8
+  },
+  "memory": {
+    "total": 17179869184,
+    "used": 13534248960,
+    "used_percent": 78.77969741821289,
+    "swap_total": 11811160064,
+    "swap_used": 10768678912
+  },
+  "storage": {
+    "total": 994662584320,
+    "used": 787438243840,
+    "free": 207224340480,
+    "cache": 787438243840
+  },
+  "system": {
+    "hostname": "Nasruls-MacBook-Pro-2.local",
+    "os": "darwin",
+    "platform": "darwin",
+    "platform_version": "14.6.1",
+    "kernel_version": "23.6.0",
+    "uptime": 2949679
+  }
 }
 ```
 
