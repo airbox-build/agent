@@ -40,6 +40,8 @@ else
     exit 1
 fi
 
+mkdir -p "${BINARY_DIRECTORY}" || exit 2
+
 # Get the current logged-in user
 USERNAME=$USER
 
@@ -114,8 +116,6 @@ case "$OS" in
     exit 2
     ;;
 esac
-
-mkdir -p "${BINARY_DIRECTORY}" || exit 2
 
 rm -rf "${TMP_DIR}"
 echo "Installed successfully to ${BINARY_PATH}/airbox"
