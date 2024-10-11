@@ -34,7 +34,7 @@ The AirBox Agent is a lightweight server monitoring tool written in Go. It is de
 Linux & Mac users can install it directly to `/usr/local/bin/airbox` with:
 
 ```bash
-sudo bash < <(curl -sL https://raw.githubusercontent.com/airbox-build/agent/main/install)
+sudo bash -c "$(curl -sL https://raw.githubusercontent.com/airbox-build/agent/main/install)"
 ```
 
 ### Download static binary (Windows, Linux and Mac)
