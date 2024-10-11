@@ -23,14 +23,25 @@ jobs:
       with:
         go-version: 1.20.5
 
+    - name: Create Semantic Version Tag
+      run: |
+        if git describe --tags --abbrev=0 > /dev/null 2>&1; then
+          VERSION_TAG=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2"."$3+1}')
+        else
+          VERSION_TAG="v0.0.1"
+        fi
+        VERSION_TAG="$VERSION_TAG-develop"
+        git tag $VERSION_TAG
+        git push origin $VERSION_TAG
+
     - name: Install dependencies
       run: go mod tidy
 
     - name: Build the Go application
-      run: go build -o airbox-agent-develop
+      run: go build -o sum-agent-develop
 
     - name: Archive build output
       uses: actions/upload-artifact@v3
       with:
-        name: airbox-agent-develop
-        path: ./airbox-agent-develop
+        name: sum-agent-develop
+        path: ./sum-agent-develop

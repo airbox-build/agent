@@ -1,16 +1,17 @@
-name: Go Midnight Build
+name: Go Develop Build
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
+  push:
+    branches:
+      - main
 
 permissions:
   contents: write
   packages: write
 
 jobs:
-  midnight-build:
-    name: Build Go Midnight Version
+  develop-build:
+    name: Build Go Develop Version
     runs-on: ubuntu-latest
 
     steps:
@@ -22,14 +23,25 @@ jobs:
       with:
         go-version: 1.20.5
 
+    - name: Create Semantic Version Tag
+      run: |
+        if git describe --tags --abbrev=0 > /dev/null 2>&1; then
+          VERSION_TAG=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2"."$3+1}')
+        else
+          VERSION_TAG="v0.0.1"
+        fi
+        VERSION_TAG="$VERSION_TAG-develop"
+        git tag $VERSION_TAG
+        git push origin $VERSION_TAG
+
     - name: Install dependencies
       run: go mod tidy
 
     - name: Build the Go application
-      run: go build -o airbox-agent-midnight
+      run: go build -o sum-agent-midnight
 
     - name: Archive build output
       uses: actions/upload-artifact@v3
       with:
-        name: airbox-agent-midnight
-        path: ./airbox-agent-midnight
+        name: sum-agent-midnight
+        path: ./sum-agent-midnight

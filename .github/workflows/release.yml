@@ -31,9 +31,16 @@ jobs:
       with:
         go-version: 1.20.5
 
-    - name: Build and Release
-      uses: wangyoucao577/go-release-action@v1
+    - name: Install dependencies
+      run: go mod tidy
+
+    - name: Build the Go application
+      run: |
+        VERSION=$(echo ${{ github.event.release.tag_name }})
+        go build -o sum-agent-$VERSION
+
+    - name: Archive build output
+      uses: actions/upload-artifact@v3
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
+        name: sum-agent-${{ github.event.release.tag_name }}
+        path: ./sum-agent-${{ github.event.release.tag_name }}
