@@ -38,10 +38,10 @@ jobs:
       run: go mod tidy
 
     - name: Build the Go application
-      run: go build -o sum-agent-midnight
+      run: go build -o airbox-agent-midnight
 
     - name: Archive build output
       uses: actions/upload-artifact@v3
       with:
-        name: sum-agent-midnight
-        path: ./sum-agent-midnight
+        name: airbox-agent-midnight
+        path: ./airbox-agent-midnight

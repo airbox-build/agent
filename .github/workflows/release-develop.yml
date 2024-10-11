@@ -38,10 +38,10 @@ jobs:
       run: go mod tidy
 
     - name: Build the Go application
-      run: go build -o sum-agent-develop
+      run: go build -o airbox-agent-develop
 
     - name: Archive build output
       uses: actions/upload-artifact@v3
       with:
-        name: sum-agent-develop
-        path: ./sum-agent-develop
+        name: airbox-agent-develop
+        path: ./airbox-agent-develop

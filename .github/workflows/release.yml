@@ -37,10 +37,10 @@ jobs:
     - name: Build the Go application
       run: |
         VERSION=$(echo ${{ github.event.release.tag_name }})
-        go build -o sum-agent-$VERSION
+        go build -o airbox-agent-$VERSION
 
     - name: Archive build output
       uses: actions/upload-artifact@v3
       with:
-        name: sum-agent-${{ github.event.release.tag_name }}
-        path: ./sum-agent-${{ github.event.release.tag_name }}
+        name: airbox-agent-${{ github.event.release.tag_name }}
+        path: ./airbox-agent-${{ github.event.release.tag_name }}
