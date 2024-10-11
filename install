@@ -50,7 +50,7 @@ set -e
 
 VERSION=$(curl --silent --location --max-time "${TIMEOUT}" "https://api.github.com/repos/${GH_REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 if [ ! "$VERSION" ]; then
-    echo -ne "\nThere was an error trying to check what is the latest version of airbox.\nPlease try again later.\n"
+    echo -ne "\nThere was an error trying to check what is the latest version of AirBox Agent.\nPlease try again later.\n"
     exit 1
 fi
 
