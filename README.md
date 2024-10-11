@@ -1,4 +1,4 @@
-[![Production Build](https://github.com/airbox-build/agent/actions/workflows/release.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/release.yml) [![Unit Test](https://github.com/airbox-build/agent/actions/workflows/unit-test.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/unit-test.yml)
+[![Build](https://github.com/airbox-build/agent/actions/workflows/release.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/release.yml) [![Unit Test](https://github.com/airbox-build/agent/actions/workflows/unit-test.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/unit-test.yml)
 
 # AirBox Agent
 
