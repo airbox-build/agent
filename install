@@ -97,7 +97,7 @@ echo "Downloading AirBox Agent $VERSION"
 LINK="https://github.com/${GH_REPO}/releases/download/${VERSION}/${GH_REPO_BIN}"
 echo "Downloading $LINK"
 
-curl --silent --location --max-time "${TIMEOUT}" "${LINK}" | tar zxf - || {
+curl --location --max-time "${TIMEOUT}" "${LINK}" | tar ztvf - || {
     echo "Error downloading"
     exit 2
 }
