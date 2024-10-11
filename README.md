@@ -1,4 +1,4 @@
-[![Go Release](https://github.com/airbox-build/agent/actions/workflows/build.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/build.yml)
+[![Go Release](https://github.com/airbox-build/agent/actions/workflows/build.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/build.yml) [![Unit Test](https://github.com/airbox-build/agent/actions/workflows/unit-test.yml/badge.svg)](https://github.com/airbox-build/agent/actions/workflows/unit-test.yml)
 
 # AirBox Agent
 
