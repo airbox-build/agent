@@ -28,12 +28,12 @@ jobs:
         if git describe --tags --abbrev=0 > /dev/null 2>&1; then
           BASE_TAG=$(git describe --tags --abbrev=0)
           COUNTER=1
-          while git rev-parse "$BASE_TAG-develop-$COUNTER" >/dev/null 2>&1; do
+          while git rev-parse "$BASE_TAG-dev-$COUNTER" >/dev/null 2>&1; do
             COUNTER=$((COUNTER + 1))
           done
-          VERSION_TAG="$BASE_TAG-develop-$COUNTER"
+          VERSION_TAG="$BASE_TAG-dev-$COUNTER"
         else
-          VERSION_TAG="v0.0.1-develop-1"
+          VERSION_TAG="v0.0.1-dev-1"
         fi
         git tag $VERSION_TAG
         git push origin $VERSION_TAG
