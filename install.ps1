@@ -53,8 +53,9 @@ $TMP_DIR = New-TemporaryFile -Directory | Select-Object -ExpandProperty FullName
 Write-Host "Change to temporary directory $TMP_DIR"
 Set-Location $TMP_DIR
 
-Write-Host "Downloading airbox $VERSION"
+Write-Host "Downloading AirBox Agent $VERSION"
 $LINK = "https://github.com/$GH_REPO/releases/download/$VERSION/$GH_REPO_BIN"
+Write-Host "Downloading $LINK"
 
 Invoke-WebRequest -Uri $LINK -OutFile "$TMP_DIR\$GH_REPO_BIN"
 if ($?) {
