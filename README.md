@@ -58,25 +58,25 @@ The agent runs continuously, collecting and logging metrics at a configurable in
 
 ```json
 {
-  "timestamp": "2024-10-11T10:37:32+08:00",
+  "timestamp": "2024-10-11T11:30:18+08:00",
   "cpu": {
     "usage": [
-      22.16302084796688
+      22.23625623468918
     ],
     "cores": 8
   },
   "memory": {
     "total": 17179869184,
-    "used": 13796392960,
-    "used_percent": 80.30557632446289,
+    "used": 13222641664,
+    "used_percent": 76.96590423583984,
     "swap_total": 11811160064,
-    "swap_used": 10470424576
+    "swap_used": 10595598336
   },
   "storage": {
     "total": 994662584320,
-    "used": 787517534208,
-    "free": 207145050112,
-    "cache": 787517534208
+    "used": 787459915776,
+    "free": 207202668544,
+    "cache": 787459915776
   },
   "system": {
     "hostname": "Nasruls-MacBook-Pro-2.local",
@@ -84,12 +84,157 @@ The agent runs continuously, collecting and logging metrics at a configurable in
     "platform": "darwin",
     "platform_version": "14.6.1",
     "kernel_version": "23.6.0",
-    "uptime": 2952344
+    "uptime": 2955510,
+    "ip_address": "192.168.0.105"
+  },
+  "network": {
+    "interfaces": [
+      {
+        "name": "lo0",
+        "bytes_sent": 23583009561,
+        "bytes_recv": 23583009561,
+        "packets_sent": 44482621,
+        "packets_recv": 44482621
+      },
+      {
+        "name": "gif0",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "stf0",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "anpi0",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "anpi1",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "en3",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "en4",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "en1",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "en2",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "bridge0",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "ap1",
+        "bytes_sent": 31367021,
+        "bytes_recv": 0,
+        "packets_sent": 116011,
+        "packets_recv": 0
+      },
+      {
+        "name": "en0",
+        "bytes_sent": 22295660432,
+        "bytes_recv": 81311602125,
+        "packets_sent": 55187252,
+        "packets_recv": 87588903
+      },
+      {
+        "name": "awdl0",
+        "bytes_sent": 5565058,
+        "bytes_recv": 31673,
+        "packets_sent": 50420,
+        "packets_recv": 97
+      },
+      {
+        "name": "llw0",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "utun0",
+        "bytes_sent": 80,
+        "bytes_recv": 0,
+        "packets_sent": 1,
+        "packets_recv": 0
+      },
+      {
+        "name": "utun1",
+        "bytes_sent": 144244,
+        "bytes_recv": 0,
+        "packets_sent": 742,
+        "packets_recv": 0
+      },
+      {
+        "name": "utun2",
+        "bytes_sent": 144304,
+        "bytes_recv": 0,
+        "packets_sent": 743,
+        "packets_recv": 0
+      },
+      {
+        "name": "utun3",
+        "bytes_sent": 144304,
+        "bytes_recv": 0,
+        "packets_sent": 743,
+        "packets_recv": 0
+      },
+      {
+        "name": "en10",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      },
+      {
+        "name": "en9",
+        "bytes_sent": 0,
+        "bytes_recv": 0,
+        "packets_sent": 0,
+        "packets_recv": 0
+      }
+    ]
   },
   "meta": {
-    "file_path": "/tmp/airbox/airbox-1728614252.json",
+    "file_path": "/tmp/airbox/airbox-1728617418.json",
     "interval": 60,
-    "file_creation": "2024-10-11T10:37:32+08:00",
+    "file_creation": "2024-10-11T11:30:18+08:00",
     "user": "nasrulhazim"
   }
 }

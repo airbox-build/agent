@@ -4,15 +4,17 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"net"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/mem"
+	gopsnet "github.com/shirou/gopsutil/net"
 )
 
 type Metrics struct {
@@ -21,6 +23,7 @@ type Metrics struct {
 	Memory    MemoryMetrics  `json:"memory"`
 	Storage   StorageMetrics `json:"storage"`
 	System    SystemMetrics  `json:"system"`
+	Network   NetworkMetrics `json:"network"`
 	Meta      MetaMetrics    `json:"meta"`
 }
 
@@ -45,12 +48,25 @@ type StorageMetrics struct {
 }
 
 type SystemMetrics struct {
-	Hostname       string `json:"hostname"`
-	OS             string `json:"os"`
-	Platform       string `json:"platform"`
+	Hostname        string `json:"hostname"`
+	OS              string `json:"os"`
+	Platform        string `json:"platform"`
 	PlatformVersion string `json:"platform_version"`
-	KernelVersion  string `json:"kernel_version"`
-	Uptime         uint64 `json:"uptime"`
+	KernelVersion   string `json:"kernel_version"`
+	Uptime          uint64 `json:"uptime"`
+	IPAddress       string `json:"ip_address"`
+}
+
+type NetworkMetrics struct {
+	Interfaces []NetworkInterfaceMetrics `json:"interfaces"`
+}
+
+type NetworkInterfaceMetrics struct {
+	Name        string `json:"name"`
+	BytesSent   uint64 `json:"bytes_sent"`
+	BytesRecv   uint64 `json:"bytes_recv"`
+	PacketsSent uint64 `json:"packets_sent"`
+	PacketsRecv uint64 `json:"packets_recv"`
 }
 
 type MetaMetrics struct {
@@ -105,6 +121,48 @@ func collectAndStoreMetrics(logPath string, interval int) {
 		return
 	}
 
+	netIO, err := gopsnet.IOCounters(true)
+	if err != nil {
+		fmt.Printf("Error getting network information: %v\n", err)
+		return
+	}
+
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		fmt.Printf("Error getting network interfaces: %v\n", err)
+		return
+	}
+
+	var ipAddress string
+	for _, iface := range interfaces {
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+				if ipNet.IP.To4() != nil {
+					ipAddress = ipNet.IP.String()
+					break
+				}
+			}
+		}
+		if ipAddress != "" {
+			break
+		}
+	}
+
+	networkMetrics := NetworkMetrics{}
+	for _, iface := range netIO {
+		networkMetrics.Interfaces = append(networkMetrics.Interfaces, NetworkInterfaceMetrics{
+			Name:        iface.Name,
+			BytesSent:   iface.BytesSent,
+			BytesRecv:   iface.BytesRecv,
+			PacketsSent: iface.PacketsSent,
+			PacketsRecv: iface.PacketsRecv,
+		})
+	}
+
 	timestamp := time.Now()
 	metrics := Metrics{
 		Timestamp: timestamp.Format(time.RFC3339),
@@ -126,13 +184,15 @@ func collectAndStoreMetrics(logPath string, interval int) {
 			Cache: cacheInfo.Used,
 		},
 		System: SystemMetrics{
-			Hostname:       hostInfo.Hostname,
-			OS:             hostInfo.OS,
-			Platform:       hostInfo.Platform,
+			Hostname:        hostInfo.Hostname,
+			OS:              hostInfo.OS,
+			Platform:        hostInfo.Platform,
 			PlatformVersion: hostInfo.PlatformVersion,
-			KernelVersion:  hostInfo.KernelVersion,
-			Uptime:         hostInfo.Uptime,
+			KernelVersion:   hostInfo.KernelVersion,
+			Uptime:          hostInfo.Uptime,
+			IPAddress:       ipAddress,
 		},
+		Network: networkMetrics,
 		Meta: MetaMetrics{
 			FilePath:     filepath.Join(logPath, fmt.Sprintf("airbox-%d.json", timestamp.Unix())),
 			Interval:     interval,

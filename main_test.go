@@ -1,5 +1,3 @@
-// Unit test for airbox agent - main_test.go
-
 package main
 
 import (
@@ -38,6 +36,43 @@ func TestSaveMetricsToFile(t *testing.T) {
 
 	metrics := Metrics{
 		Timestamp: time.Now().Format(time.RFC3339),
+		CPU: CPUMetrics{
+			Usage: []float64{0.0},
+			Cores: 1,
+		},
+		Memory: MemoryMetrics{
+			Total:       1024,
+			Used:        512,
+			UsedPercent: 50.0,
+			SwapTotal:   2048,
+			SwapUsed:    1024,
+		},
+		Storage: StorageMetrics{
+			Total: 10000,
+			Used:  5000,
+			Free:  5000,
+			Cache: 2000,
+		},
+		System: SystemMetrics{
+			Hostname:        "localhost",
+			OS:              "linux",
+			Platform:        "ubuntu",
+			PlatformVersion: "20.04",
+			KernelVersion:   "5.4.0",
+			Uptime:          1000,
+			IPAddress:       "192.168.1.1",
+		},
+		Network: NetworkMetrics{
+			Interfaces: []NetworkInterfaceMetrics{
+				{
+					Name:        "eth0",
+					BytesSent:   1000,
+					BytesRecv:   2000,
+					PacketsSent: 100,
+					PacketsRecv: 200,
+				},
+			},
+		},
 		Meta: MetaMetrics{
 			FilePath: filepath.Join(tempDir, "test_metrics.json"),
 		},
