@@ -26,11 +26,15 @@ jobs:
     - name: Create Semantic Version Tag
       run: |
         if git describe --tags --abbrev=0 > /dev/null 2>&1; then
-          VERSION_TAG=$(git describe --tags --abbrev=0 | awk -F. '{print $1"."$2"."$3+1}')
+          BASE_TAG=$(git describe --tags --abbrev=0)
+          COUNTER=1
+          while git rev-parse "$BASE_TAG-develop-$COUNTER" >/dev/null 2>&1; do
+            COUNTER=$((COUNTER + 1))
+          done
+          VERSION_TAG="$BASE_TAG-develop-$COUNTER"
         else
-          VERSION_TAG="v0.0.1"
+          VERSION_TAG="v0.0.1-develop-1"
         fi
-        VERSION_TAG="$VERSION_TAG-develop"
         git tag $VERSION_TAG
         git push origin $VERSION_TAG
 
