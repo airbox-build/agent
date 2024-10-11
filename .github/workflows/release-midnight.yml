@@ -1,4 +1,4 @@
-name: Go Develop Build
+name: Develop Build
 
 on:
   push:
