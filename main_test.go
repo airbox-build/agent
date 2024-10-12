@@ -62,23 +62,20 @@ func TestSaveMetricsToFile(t *testing.T) {
 			Uptime:          1000,
 			IPAddress:       "192.168.1.1",
 		},
-		Network: NetworkMetrics{
-			Interfaces: []NetworkInterfaceMetrics{
-				{
-					Name:        "eth0",
-					BytesSent:   1000,
-					BytesRecv:   2000,
-					PacketsSent: 100,
-					PacketsRecv: 200,
-				},
-			},
-		},
 		Meta: MetaMetrics{
-			FilePath: filepath.Join(tempDir, "test_metrics.json"),
+			FilePath:     filepath.Join(tempDir, "test_metrics.json"),
+			Interval:    30,
+			FileCreation: time.Now().Format(time.RFC3339),
+			User:        "test_user",
 		},
 	}
 
-	saveMetricsToFile(metrics, metrics.Meta.FilePath)
+	wrappedMetrics := map[string]interface{}{
+		"type": "metric",
+		"data": metrics,
+	}
+
+	saveMetricsToFile(wrappedMetrics, metrics.Meta.FilePath)
 
 	// Check if the file is created
 	if _, err := os.Stat(metrics.Meta.FilePath); os.IsNotExist(err) {
