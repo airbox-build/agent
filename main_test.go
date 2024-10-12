@@ -71,7 +71,7 @@ func TestSaveMetricsToFile(t *testing.T) {
 	}
 
 	wrappedMetrics := map[string]interface{}{
-		"type": "metric",
+		"type": "metrics",
 		"data": metrics,
 	}
 

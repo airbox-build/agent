@@ -147,7 +147,7 @@ func collectAndStoreMetrics(logPath string, interval int) {
 	}
 
 	wrappedMetrics := map[string]interface{}{
-		"type": "metric",
+		"type": "metrics",
 		"data": metrics,
 	}
 
