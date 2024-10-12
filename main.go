@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"path/filepath"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -17,6 +19,11 @@ import (
 )
 
 type Metrics struct {
+	Type      string        `json:"type"`
+	Data      MetricsData   `json:"data"`
+}
+
+type MetricsData struct {
 	Timestamp string        `json:"timestamp"`
 	CPU       CPUMetrics     `json:"cpu"`
 	Memory    MemoryMetrics  `json:"memory"`
@@ -64,100 +71,150 @@ type MetaMetrics struct {
 
 func main() {
 	// Define command line flags
-	logPath := flag.String("logpath", "/tmp/airbox", "Directory to store the log files")
+	logPath := flag.String("logpath", "./logs", "Directory to store the log files")
 	interval := flag.Int("interval", 60, "Interval to collect metrics in seconds")
 	flag.Parse()
 
-	for {
+	log.SetOutput(os.Stdout)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	ticker := time.NewTicker(time.Duration(*interval) * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
 		collectAndStoreMetrics(*logPath, *interval)
-		time.Sleep(time.Duration(*interval) * time.Second)
 	}
 }
 
 func collectAndStoreMetrics(logPath string, interval int) {
-	cpuUsage, err := cpu.Percent(0, false)
-	if err != nil {
-		fmt.Printf("Error getting CPU usage: %v\n", err)
-		return
+	var wg sync.WaitGroup
+	metricsData := &MetricsData{Timestamp: time.Now().Format(time.RFC3339)}
+
+	// Collect CPU Metrics
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		metricsData.CPU = collectCPUMetrics()
+	}()
+
+	// Collect Memory Metrics
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		metricsData.Memory = collectMemoryMetrics()
+	}()
+
+	// Collect Storage Metrics
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		metricsData.Storage = collectStorageMetrics()
+	}()
+
+	// Collect System Metrics
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		metricsData.System = collectSystemMetrics()
+	}()
+
+	// Collect Meta Metrics
+	metricsData.Meta = collectMetaMetrics(logPath, interval)
+
+	wg.Wait()
+
+	metrics := Metrics{
+		Type: "metrics",
+		Data: *metricsData,
 	}
 
-	cpuCores := runtime.NumCPU()
+	saveMetricsToFile(metrics, logPath)
+}
 
+func collectCPUMetrics() CPUMetrics {
+	cpuUsage, err := cpu.Percent(0, false)
+	if err != nil {
+		log.Printf("Error getting CPU usage: %v", err)
+		return CPUMetrics{}
+	}
+
+	return CPUMetrics{
+		Usage: cpuUsage,
+		Cores: runtime.NumCPU(),
+	}
+}
+
+func collectMemoryMetrics() MemoryMetrics {
 	memInfo, err := mem.VirtualMemory()
 	if err != nil {
-		fmt.Printf("Error getting memory usage: %v\n", err)
-		return
+		log.Printf("Error getting memory usage: %v", err)
+		return MemoryMetrics{}
 	}
 
 	swapInfo, err := mem.SwapMemory()
 	if err != nil {
-		fmt.Printf("Error getting swap memory usage: %v\n", err)
-		return
+		log.Printf("Error getting swap memory usage: %v", err)
+		return MemoryMetrics{}
 	}
 
+	return MemoryMetrics{
+		Total:       memInfo.Total,
+		Used:        memInfo.Used,
+		UsedPercent: memInfo.UsedPercent,
+		SwapTotal:   swapInfo.Total,
+		SwapUsed:    swapInfo.Used,
+	}
+}
+
+func collectStorageMetrics() StorageMetrics {
 	cacheInfo, err := disk.Usage("/")
 	if err != nil {
-		fmt.Printf("Error getting cache usage: %v\n", err)
-		return
+		log.Printf("Error getting storage usage: %v", err)
+		return StorageMetrics{}
 	}
 
+	return StorageMetrics{
+		Total: cacheInfo.Total,
+		Used:  cacheInfo.Used,
+		Free:  cacheInfo.Free,
+		Cache: cacheInfo.Used, // Assuming Cache refers to Used here
+	}
+}
+
+func collectSystemMetrics() SystemMetrics {
 	hostInfo, err := host.Info()
 	if err != nil {
-		fmt.Printf("Error getting host information: %v\n", err)
-		return
+		log.Printf("Error getting host information: %v", err)
+		return SystemMetrics{}
 	}
 
 	ipAddress := getMachineIPAddress()
 
+	return SystemMetrics{
+		Hostname:        hostInfo.Hostname,
+		OS:              hostInfo.OS,
+		Platform:        hostInfo.Platform,
+		PlatformVersion: hostInfo.PlatformVersion,
+		KernelVersion:   hostInfo.KernelVersion,
+		Uptime:          hostInfo.Uptime,
+		IPAddress:       ipAddress,
+	}
+}
+
+func collectMetaMetrics(logPath string, interval int) MetaMetrics {
 	timestamp := time.Now()
-	metrics := Metrics{
-		Timestamp: timestamp.Format(time.RFC3339),
-		CPU: CPUMetrics{
-			Usage: cpuUsage,
-			Cores: cpuCores,
-		},
-		Memory: MemoryMetrics{
-			Total:       memInfo.Total,
-			Used:        memInfo.Used,
-			UsedPercent: memInfo.UsedPercent,
-			SwapTotal:   swapInfo.Total,
-			SwapUsed:    swapInfo.Used,
-		},
-		Storage: StorageMetrics{
-			Total: cacheInfo.Total,
-			Used:  cacheInfo.Used,
-			Free:  cacheInfo.Free,
-			Cache: cacheInfo.Used,
-		},
-		System: SystemMetrics{
-			Hostname:        hostInfo.Hostname,
-			OS:              hostInfo.OS,
-			Platform:        hostInfo.Platform,
-			PlatformVersion: hostInfo.PlatformVersion,
-			KernelVersion:   hostInfo.KernelVersion,
-			Uptime:          hostInfo.Uptime,
-			IPAddress:       ipAddress,
-		},
-		Meta: MetaMetrics{
-			FilePath:     filepath.Join(logPath, fmt.Sprintf("airbox-%d.json", timestamp.Unix())),
-			Interval:     interval,
-			FileCreation: timestamp.Format(time.RFC3339),
-			User:         os.Getenv("USER"),
-		},
+	return MetaMetrics{
+		FilePath:     filepath.Join(logPath, fmt.Sprintf("%d.json", timestamp.Unix())),
+		Interval:     interval,
+		FileCreation: timestamp.Format(time.RFC3339),
+		User:         os.Getenv("USER"),
 	}
-
-	wrappedMetrics := map[string]interface{}{
-		"type": "metrics",
-		"data": metrics,
-	}
-
-	saveMetricsToFile(wrappedMetrics, logPath)
 }
 
 func getMachineIPAddress() string {
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		fmt.Printf("Error getting network interfaces: %v\n", err)
+		log.Printf("Error getting network interfaces: %v", err)
 		return ""
 	}
 
@@ -177,25 +234,23 @@ func getMachineIPAddress() string {
 	return ""
 }
 
-func saveMetricsToFile(metrics interface{}, logPath string) {
+func saveMetricsToFile(metrics Metrics, logPath string) {
 	if err := os.MkdirAll(logPath, 0755); err != nil {
-		fmt.Printf("Error creating directory: %v\n", err)
+		log.Printf("Error creating directory: %v", err)
 		return
 	}
 
-	filename := fmt.Sprintf("airbox-%d.json", time.Now().Unix())
-	filePath := filepath.Join(logPath, filename)
-
+	filePath := metrics.Data.Meta.FilePath
 	file, err := os.Create(filePath)
 	if err != nil {
-		fmt.Printf("Error creating file: %v\n", err)
+		log.Printf("Error creating file: %v", err)
 		return
 	}
 	defer file.Close()
 
 	encoder := json.NewEncoder(file)
-	encoder.SetIndent("", "")
+	encoder.SetIndent("", "  ")
 	if err := encoder.Encode(metrics); err != nil {
-		fmt.Printf("Error writing metrics to file: %v\n", err)
+		log.Printf("Error writing metrics to file: %v", err)
 	}
 }
